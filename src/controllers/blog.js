@@ -45,12 +45,26 @@ exports.createBlogPost = (req, res, next) => {
 };
 
 exports.getAllBlogPosts = (req, res, next) => {
+  const currentPage = parseInt(req.query.page) || 1;
+  const perPage = parseInt(req.query.perPage) || 5;
+  let totalItems;
+
   Blog.find()
+    .countDocuments()
+    .then((count) => {
+      totalItems = count;
+      return Blog.find()
+        .skip((currentPage - 1) * perPage)
+        .limit(perPage);
+    })
     .then((result) => {
       res.status(200).json({
         status: "success",
         message: "Data blog post berhasil dipanggil",
         data: result,
+        total_data: totalItems,
+        page: currentPage,
+        per_page: perPage,
       });
     })
     .catch((error) => next(error));
